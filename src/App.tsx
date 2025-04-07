@@ -4,7 +4,6 @@ import './index.css';
 import Home from './components/Home';
 import WeatherRecommendation from './components/WeatherRecommendation';
 import Onboarding from './components/Onboarding';
-import ChatInterface from './components/ChatInterface';
 import { UserProvider } from './contexts/UserContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -12,57 +11,59 @@ import ThemeToggle from './components/ThemeToggle';
 import LanguageSelector from './components/LanguageSelector';
 import Footer from './components/Footer';
 import FeedbackModal from './components/FeedbackModal';
-import { initializeNotifications, scheduleNotification, cleanupNotifications } from './utils/notificationService';
+import ShareButton from './components/ShareButton';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import { requestNotificationPermission, listenForMessages, registerFirebaseServiceWorker } from './firebase-messaging';
+import MilestonePopup from './components/MilestonePopup'; // Importer le composant
 
 function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   useEffect(() => {
-    // Load Google Fonts
+    // Charger les polices Google
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
-    
-    // Update page title
+
+    // Mettre à jour le titre de la page
     document.title = 'WeatherWear - Assistant vestimentaire';
 
-    // Initialize notifications with permission request
-    initializeNotifications();
+    // Initialiser les notifications Firebase
+    requestNotificationPermission();
+    listenForMessages();
 
-    // Check if we need to show the feedback modal (e.g. after 3 visits)
+    // Enregistrer le service worker Firebase
+    registerFirebaseServiceWorker();
+
+    // Vérifier si le feedback modal doit être affiché
     const userData = localStorage.getItem('timeClothesUserData');
     if (userData) {
       try {
         const { visitCount } = JSON.parse(userData);
         if (visitCount === 3) {
-          // Show feedback modal after the 3rd visit
-          setTimeout(() => setIsFeedbackOpen(true), 60000); // Show after 1 minute
+          // Afficher le feedback modal après la 3e visite
+          setTimeout(() => setIsFeedbackOpen(true), 60000); // Afficher après 1 minute
         }
       } catch (error) {
-        console.error('Error parsing user data for feedback check:', error);
+        console.error('Erreur lors de l\'analyse des données utilisateur pour le feedback :', error);
       }
     }
 
-    // Cleanup function for when component unmounts
+    // Fonction de nettoyage lors du démontage du composant
     return () => {
-      cleanupNotifications();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
-  // Handle visibility changes to check PWA status
+  // Gérer les changements de visibilité pour vérifier l'état de la PWA
   const handleVisibilityChange = () => {
     if (!document.hidden) {
-      // When tab becomes visible, check if notifications need to be scheduled
-      const nextNotificationTime = localStorage.getItem('nextNotificationTime');
-      if (!nextNotificationTime) {
-        scheduleNotification();
-      }
+      console.log('L\'onglet est visible.');
     }
   };
 
-  // Set up visibility listener after initial render
+  // Configurer le listener de visibilité après le rendu initial
   useEffect(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
@@ -94,16 +95,18 @@ function App() {
                 <LanguageSelector />
               </div>
               <div className="flex-grow">
+                <MilestonePopup /> {/* Afficher les pop-ups globalement */}
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/recommendation" element={<WeatherRecommendation />} />
-                  <Route path="/chat" element={<ChatInterface />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>
               <Footer />
               <FeedbackModal isOpen={isFeedbackOpen} onClose={closeFeedbackModal} />
+              <ShareButton />
+              <PWAInstallPrompt />
             </div>
           </Router>
         </UserProvider>

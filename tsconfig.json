@@ -20,5 +20,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "src/components/LoadingState.tsx", "src/contexts/LanguageContext.tsx", "src/firebase-config.ts"]
 }

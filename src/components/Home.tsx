@@ -1,6 +1,6 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { CheckCircle, Search } from 'lucide-react'; // Importer l'icône de validation
 import { useUser } from '../contexts/UserContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -8,20 +8,28 @@ const Home = () => {
   const [location, setLocation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasViewedRecommendations, setHasViewedRecommendations] = useState(false); // Nouvel état
   const { userData, isFirstVisit } = useUser();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If first visit, redirect to onboarding
+    // Si c'est la première visite, rediriger vers l'onboarding
     if (isFirstVisit) {
       navigate('/onboarding');
     }
-    
-    // Get previously used location if available
+
+    // Récupérer la localisation précédemment utilisée si disponible
     const savedLocation = localStorage.getItem('weatherWearLocation');
     if (savedLocation) {
       setLocation(savedLocation);
+    }
+
+    // Vérifier si l'utilisateur a déjà consulté les recommandations aujourd'hui
+    const lastViewedDate = localStorage.getItem('lastViewedRecommendations');
+    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+    if (lastViewedDate === today) {
+      setHasViewedRecommendations(true);
     }
   }, [isFirstVisit, navigate]);
 
@@ -31,14 +39,18 @@ const Home = () => {
       setError('Veuillez entrer une ville ou un pays');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
-    
-    // Store the location in localStorage and navigate to recommendation
+
+    // Stocker la localisation et la date de consultation dans localStorage
     localStorage.setItem('weatherWearLocation', location);
+    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+    localStorage.setItem('lastViewedRecommendations', today);
+
     setTimeout(() => {
       setIsLoading(false);
+      setHasViewedRecommendations(true); // Mettre à jour l'état
       navigate('/recommendation');
     }, 600);
   };
@@ -60,14 +72,13 @@ const Home = () => {
             )}
             {userData && userData.lastVisit && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                {language === 'fr' 
-                  ? `Votre dernière visite était le ${new Date(userData.lastVisit).toLocaleDateString()} à ${new Date(userData.lastVisit).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}.`
-                  : `Your last visit was on ${new Date(userData.lastVisit).toLocaleDateString()} at ${new Date(userData.lastVisit).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}.`
-                }
+                {t('lastVisitMessage')
+                  .replace('{date}', new Date(userData.lastVisit).toLocaleDateString())
+                  .replace('{time}', new Date(userData.lastVisit).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))}
               </p>
             )}
           </div>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="relative mb-4">
               <input
@@ -76,33 +87,46 @@ const Home = () => {
                 placeholder={t('enterLocation')}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                disabled={hasViewedRecommendations} // Désactiver si déjà consulté
               />
               <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
             </div>
-            
+
             {error && <p className="text-red-500 dark:text-red-400 text-sm mb-4">{error}</p>}
-            
+
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium py-3 rounded-lg transition flex items-center justify-center"
-              disabled={isLoading}
+              className={`w-full ${
+                hasViewedRecommendations
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600'
+              } text-white font-medium py-3 rounded-lg transition flex items-center justify-center`}
+              disabled={hasViewedRecommendations || isLoading} // Désactiver si déjà consulté ou en chargement
             >
-              {isLoading ? (
+              {hasViewedRecommendations ? (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {t('alreadyViewed')}
+                </>
+              ) : isLoading ? (
                 <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
-              ) : null}
-              {isLoading ? t('loading') : t('getRecommendations')}
+              ) : (
+                t('getRecommendations')
+              )}
             </button>
           </form>
         </div>
 
         {userData && userData.style && (
           <div className="text-center text-gray-600 dark:text-gray-400 text-sm">
-            <p>{t('style')}: <span className="font-medium">{userData.style.style}</span></p>
+            <p>
+              {t('styleMessage').replace('{style}', userData.style.style)}
+            </p>
             <div className="flex justify-center mt-2 space-x-2">
               {userData.style.colors.map((color, index) => (
-                <div 
-                  key={index} 
-                  className="w-4 h-4 rounded-full" 
+                <div
+                  key={index}
+                  className="w-4 h-4 rounded-full"
                   style={{ backgroundColor: color }}
                   title={color}
                 />
