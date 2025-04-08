@@ -49,7 +49,10 @@ export type TranslationKey =
   | 'shareOnWhatsApp'
   | 'shareOnInstagram'
   | 'shareOnFacebook'
-  | 'shareOnTwitter';
+  | 'shareOnTwitter'
+  | 'infoTabTitle'
+  | 'infoTabDescription'
+  | 'infoTabStayTuned';
 
 type TranslationsType = {
   [key in AvailableLanguages]: {
@@ -109,6 +112,9 @@ export const translations: TranslationsType = {
     shareOnInstagram: "Partager sur Instagram",
     shareOnFacebook: "Partager sur Facebook",
     shareOnTwitter: "Partager sur Twitter",
+    infoTabTitle: "À venir bientôt !",
+    infoTabDescription: "Cet onglet sera bientôt mis à jour avec toutes les nouvelles informations liées à WeatherWear. Restez à l'écoute pour découvrir les dernières actualités et fonctionnalités !",
+    infoTabStayTuned: "Restez à l'écoute",
   },
   en: {
     welcomeMessage: 'Your smart weather-based clothing assistant',
@@ -161,5 +167,8 @@ export const translations: TranslationsType = {
     shareOnInstagram: "Share on Instagram",
     shareOnFacebook: "Share on Facebook",
     shareOnTwitter: "Share on Twitter",
+    infoTabTitle: "Coming Soon!",
+    infoTabDescription: "This tab will soon be updated with all the latest information about WeatherWear. Stay tuned to discover the latest news and features!",
+    infoTabStayTuned: "Stay tuned",
   },
 };

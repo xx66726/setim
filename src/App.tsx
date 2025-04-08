@@ -14,8 +14,7 @@ import FeedbackModal from './components/FeedbackModal';
 import ShareButton from './components/ShareButton';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { requestNotificationPermission, listenForMessages, registerFirebaseServiceWorker } from './firebase-messaging';
-import MilestonePopup from './components/MilestonePopup'; // Importer le composant
-import NotificationButton from './components/NotificationButton';
+import MilestonePopup from './components/MilestonePopup';
 
 function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -50,26 +49,6 @@ function App() {
         console.error('Erreur lors de l\'analyse des données utilisateur pour le feedback :', error);
       }
     }
-
-    // Fonction de nettoyage lors du démontage du composant
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  // Gérer les changements de visibilité pour vérifier l'état de la PWA
-  const handleVisibilityChange = () => {
-    if (!document.hidden) {
-      console.log('L\'onglet est visible.');
-    }
-  };
-
-  // Configurer le listener de visibilité après le rendu initial
-  useEffect(() => {
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
 
   const openFeedbackModal = () => setIsFeedbackOpen(true);
@@ -108,7 +87,6 @@ function App() {
               <FeedbackModal isOpen={isFeedbackOpen} onClose={closeFeedbackModal} />
               <ShareButton />
               <PWAInstallPrompt />
-              <NotificationButton />
             </div>
           </Router>
         </UserProvider>
