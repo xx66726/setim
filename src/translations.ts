@@ -51,6 +51,7 @@ export type TranslationKey =
   | 'shareOnFacebook'
   | 'shareOnTwitter'
   | 'infoTabTitle'
+  | 'personalAssistant'
   | 'infoTabDescription'
   | 'infoTabStayTuned';
 
