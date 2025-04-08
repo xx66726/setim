@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Check, CircleAlert, Clock, Cloud, CloudRain, Droplets, ExternalLink, Shirt, Snowflake, Sun, Thermometer, Umbrella, Wind } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, CircleAlert, Clock, Cloud, CloudRain, Droplets, ExternalLink, Shirt, Snowflake, Sun, Thermometer, Umbrella, Wind, ThumbsUp, ThumbsDown } from 'lucide-react';
 import axios from 'axios';
 import { getClothingRecommendation } from '../utils/recommendationEngine';
 import { WeatherData, ClothingRecommendation } from '../types';
 import LoadingState from './LoadingState';
+import FeedbackModal from './FeedbackModal'; // Import du composant FeedbackModal
 import { useUser } from '../contexts/UserContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -18,10 +19,34 @@ const WeatherRecommendation = () => {
   const [error, setError] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false); // État pour le FeedbackModal
+  const [likeStatus, setLikeStatus] = useState<'liked' | 'none'>('none'); // État pour gérer le statut du like
+  const [dislikeStatus, setDislikeStatus] = useState<'disliked' | 'none'>('none'); // État pour gérer le statut du dislike
   const { userData } = useUser();
   const { t, language } = useLanguage();
   const { theme } = useTheme();
   const navigate = useNavigate();
+
+  const handleLike = () => {
+    // Enregistrer le like dans localStorage pour donner l'illusion qu'il est pris en compte
+    localStorage.setItem('recommendationLiked', 'true');
+    setLikeStatus('liked'); // Mettre à jour l'état pour afficher l'animation
+    setTimeout(() => {
+      setLikeStatus('none'); // Réinitialiser après un court délai
+    }, 2000);
+  };
+
+  const handleDislike = () => {
+    // Déclencher l'animation pour le dislike
+    setDislikeStatus('disliked');
+    setTimeout(() => {
+      setDislikeStatus('none'); // Réinitialiser après un court délai
+    }, 2000);
+  };
+
+  const closeFeedbackModal = () => {
+    setIsFeedbackModalOpen(false);
+  };
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -358,12 +383,50 @@ const WeatherRecommendation = () => {
                       <span>{t('optimalRecommendation')} {weather.temperature}°C</span>
                     </div>
                   </div>
+
+                  {/* Section Like/Dislike */}
+                  <div className="flex justify-center items-center space-x-4 mt-6">
+                    <button
+                      onClick={handleLike}
+                      className={`flex items-center px-4 py-2 rounded-full transition-all ${
+                        likeStatus === 'liked'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-800/30'
+                      }`}
+                    >
+                      {likeStatus === 'liked' ? (
+                        <>
+                          <Check size={20} className="mr-2" />
+                          <span className="text-sm font-medium">{t('liked')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <ThumbsUp size={20} className="mr-2" />
+                          <span className="text-sm font-medium">{t('like')}</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={handleDislike}
+                      className={`flex items-center px-4 py-2 rounded-full transition-all ${
+                        dislikeStatus === 'disliked'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 animate-shake'
+                          : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-800/30'
+                      }`}
+                    >
+                      <ThumbsDown size={20} className="mr-2" />
+                      <span className="text-sm font-medium">{t('dislike')}</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </>
           )}
         </div>
       )}
+
+      {/* Feedback Modal */}
+      {isFeedbackModalOpen && <FeedbackModal onClose={closeFeedbackModal} />}
     </div>
   );
 };

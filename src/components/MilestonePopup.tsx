@@ -17,7 +17,7 @@ const milestones: Milestone[] = [
 
 const MilestonePopup = () => {
   const [showPopup, setShowPopup] = useState(false);
-  const [currentMilestone, setCurrentMilestone] = useState<Milestone | null>(null); // Typage ajouté
+  const [currentMilestone, setCurrentMilestone] = useState<Milestone | null>(null);
 
   useEffect(() => {
     const firstVisitDate = localStorage.getItem('firstVisitDate');
@@ -32,9 +32,11 @@ const MilestonePopup = () => {
         (new Date(today).getTime() - new Date(firstVisitDate).getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Vérifier si un jalon doit être affiché
+      // Vérifier si un jalon doit être affiché et n'a pas encore été vu
       const milestone = milestones.find((m) => m.day === daysElapsed);
-      if (milestone) {
+      const seenMilestones = JSON.parse(localStorage.getItem('seenMilestones') || '[]');
+
+      if (milestone && !seenMilestones.includes(milestone.day)) {
         setCurrentMilestone(milestone); // Affecter le jalon trouvé
         setShowPopup(true);
       }
@@ -42,6 +44,12 @@ const MilestonePopup = () => {
   }, []);
 
   const handleClose = () => {
+    if (currentMilestone) {
+      // Ajouter le jalon actuel à la liste des jalons vus
+      const seenMilestones = JSON.parse(localStorage.getItem('seenMilestones') || '[]');
+      seenMilestones.push(currentMilestone.day);
+      localStorage.setItem('seenMilestones', JSON.stringify(seenMilestones));
+    }
     setShowPopup(false);
   };
 
@@ -49,10 +57,11 @@ const MilestonePopup = () => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-center relative">
         <button
           onClick={handleClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-full p-1"
+          aria-label="Fermer"
         >
           <X size={20} />
         </button>

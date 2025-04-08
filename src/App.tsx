@@ -15,6 +15,7 @@ import ShareButton from './components/ShareButton';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { requestNotificationPermission, listenForMessages, registerFirebaseServiceWorker } from './firebase-messaging';
 import MilestonePopup from './components/MilestonePopup'; // Importer le composant
+import NotificationButton from './components/NotificationButton';
 
 function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -107,6 +108,7 @@ function App() {
               <FeedbackModal isOpen={isFeedbackOpen} onClose={closeFeedbackModal} />
               <ShareButton />
               <PWAInstallPrompt />
+              <NotificationButton />
             </div>
           </Router>
         </UserProvider>

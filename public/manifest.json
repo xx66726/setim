@@ -1,6 +1,8 @@
 {
   "name": "WeatherWear - AI Weather Stylist",
   "short_name": "WeatherWear",
+  "version": "1.0",
+  "manifest_version": 3,
   "description": "Get personalized outfit recommendations based on weather and your style preferences",
   "start_url": "/",
   "display": "standalone",
